@@ -1,0 +1,25 @@
+the first file is illegalbuildingsApplication.java
+
+the second file is application.properties where all database connection
+server and other properties are stored
+
+the third main folder is model/ where all the models are stored
+Building.java- just creating the structure of buildings database,
+User.java- just creating the strucutre of users table
+Admin.java- just creating the strucutre of admins table
+
+The third main folder is repository/ where all the repositories are stored
+BuildingRepository.java, AdminRepository.java, UserRepository.java
+
+The fourth package is service/ where all the services are stored
+BuildingService.java, UserService.java, AdminService.java, DataInnitializeService.java
+
+The fifth package is controller/ where all the controllers are stored
+BuildingController.java,AuthController.java, UserController.java, MainController.java
+
+The sixth package is security/ where all the security configurations are stored
+SecurityConfig.java, JWTAuthenticationEntryPoint.java, UserDetailsImp.java, UserDetailsService.java
+
+The seventh package for front end is staticc where all the static files are stored
+index.html, login.html, register.html, admin.html, user.html, css folder java folder and images
+
