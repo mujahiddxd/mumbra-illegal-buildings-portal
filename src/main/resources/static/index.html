@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Illegal Buildings in Mumbra - Documentation Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        
+    .login-container {
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        background: white;
+    }
+    #message {
+        min-height: 50px;
+    }
+    #loginLogoutBtn {
+    padding: 8px 16px;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #fff;
+}
+
+#loginLogoutBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#loginLogoutBtn.logged-in {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+
+#loginLogoutBtn {
+    padding: 8px 16px;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #fff;
+}
+
+</style>
+    </style>
+</head>
+<body class="index-page" id="home">
+    <!-- Mobile Menu Toggle Button -->
+
+    <button class="mobile-menu-toggle" aria-label="Toggle navigation">
+        <span class="hamburger"></span>
+    </button>
+<script>
+// Enhanced authentication management
+function renderAuthButtons() {
+    const authNav = document.querySelector('.nav-auth .dropdown');
+    const user = JSON.parse(localStorage.getItem("user")); 
+
+    if (user) {
+        // If logged in → show user info and logout
+        authNav.innerHTML = `
+            <button class="btn btn-login dropdown-toggle" type="button" id="authDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i>${user.username || user.email}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown" id="authDropdownMenu">
+                <li class="px-3 py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="user-avatar">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <div class="fw-medium">${user.username || user.email}</div>
+                            <div class="text-muted small">Track your reports and status</div>
+                        </div>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider my-2"></li>
+                <li class="px-3 py-1">
+                    <button class="btn btn-danger w-100" id="logoutBtn">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                </li>
+            </ul>
+        `;
+
+        // Attach logout handler
+        document.getElementById("logoutBtn").addEventListener("click", function(e) {
+            e.preventDefault();
+            localStorage.removeItem("user");
+            sessionStorage.removeItem("user");
+            window.location.href = "/index.html";
+        });
+
+    } else {
+        // If NOT logged in → show Login/Signup dropdown
+        authNav.innerHTML = `
+            <button class="btn btn-login dropdown-toggle" type="button" id="authDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Account
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown">
+                <li class="px-3 py-1">
+                <a href="/login.html" class="btn btn-primary w-100 mb-2" style="color: white;">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                </li>
+                <li class="px-3 py-1">
+                    <a href="/signup.html" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </a>
+                </li>
+                <li class="px-3 py-1">
+                    <a href="/admin-login.html" class="btn btn-warning w-100 d-flex align-items-center justify-content-center" style="text-decoration: none;">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        <span>Admin Login</span>
+                    </a>
+                </li>
+            </ul>
+        `;
+    }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', renderAuthButtons);
+</script>
+
+    <div class="top-bar">
+        <div class="container">
+            <div class="logo-container">
+                <a href="#home" aria-label="Home">
+                    <img src="/images/image.png" alt="Site logo" class="nav-logo" />
+                </a>
+            </div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-menu">
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#risk-map-section">Location Map</a></li>
+                    <li><a href="index.html#illegal-report">File Report</a></li>
+                    <li><a href="illegal-buildings.html">Reported Buildings</a></li>
+                    <li><a href="index.html#statistics">Statistics</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                    <li><a href="/admin-login.html" class="admin-link"><i class="bi bi-shield-lock"></i> Admin</a></li>
+                    <li class="nav-divider">|</li>
+                    <li class="nav-auth">
+                        <div class="dropdown">
+                            <button class="btn btn-login dropdown-toggle" type="button" id="authDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Account
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown">
+                                <!-- Authentication handled by renderAuthButtons() function -->
+    
+    </body>
+    </html>
+    
+                                    
+                               
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Carousel Section -->
+    <div class="container mt-3 mb-4">
+        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner rounded">
+                <div class="carousel-item active">
+                    <img src="/images/image copy.png" class="d-block w-100" alt="Building Compliance 1">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h2>Uncovering Unauthorized Construction</h2>
+                        <p class="lead">For a safer Tomorrow</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="/images/image 11.jpg" class="d-block w-100" alt="Building Compliance 2">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h2>High Risk Zone Alert</h2>
+                        <p class="lead">Mumbra tops the list with 70% illegal buildings</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="./images/image-12-copy.jpg" class="d-block w-100" alt="Building Compliance 3">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h2>Data transparency</h2>
+                        <p class="lead">Bringing Mumbra's illegal building data to light</p>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Location Map Section -->
+    <section class="map-section" id="risk-map-section">
+        <div class="container">
+            <div class="map-header">    
+                <h2 class="map-title">Risk Assessment Map</h2>
+                <p class="map-subtitle">Interactive map showing illegal building locations with risk severity levels across Mumbra</p>
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+            
+            <div class="map-container-wrapper">
+                <div class="row g-0">
+                    <div class="col-lg-8">
+                        <div class="map-container">
+                            <div id="riskMap" style="height: 500px; width: 100%; max-width: 100%;"></div>
+                        </div>
+                        
+                        <!-- Map Legend -->
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <div class="legend-icon high-risk"></div>
+                                <span>High Risk</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon medium-risk"></div>
+                                <span>Medium Risk</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-icon low-risk"></div>
+                                <span>Low Risk</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="map-controls">
+                            <div class="control-panel">
+                                <h4>Filter by Severity</h4>
+                                <div class="severity-filters">
+                                    <div class="filter-group">
+                                        <label class="filter-label">
+                                            <input type="checkbox" id="showHighRisk" checked>
+                                            <span class="filter-indicator high-risk"></span>
+                                            High Risk (Red)
+                                        </label>
+                                        <span class="filter-count" id="highCount">12</span>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label class="filter-label">
+                                            <input type="checkbox" id="showMediumRisk" checked>
+                                            <span class="filter-indicator medium-risk"></span>
+                                            Medium Risk (Orange)
+                                        </label>
+                                        <span class="filter-count" id="mediumCount">8</span>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label class="filter-label">
+                                            <input type="checkbox" id="showLowRisk" checked>
+                                            <span class="filter-indicator low-risk"></span>
+                                            Low Risk (Green)
+                                        </label>
+                                        <span class="filter-count" id="lowCount">5</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="control-divider"></div>
+                                
+                                <h4>Quick Actions</h4>
+                                <div class="quick-actions">
+                                    <button class="action-btn" id="showAllMarkers">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                        </svg>
+                                        Show All Locations
+                                    </button>
+                                    <button class="action-btn" id="centerMap">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                        </svg>
+                                        Center on Mumbra
+                                    </button>
+                                    <button class="action-btn" id="locateUser">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                        </svg>
+                                        My Location
+                                    </button>
+                                </div>
+                                
+                                <div class="control-divider"></div>        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modern Statistics Section -->
+    <section class="stats-section" id="statistics">
+        <div class="container">
+        <div class="floating-elements">
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+        </div>
+        <div class="container">
+            <div class="stats-header">
+                
+                <h2 class="stats-title">Case Statistics</h2>
+                <p class="stats-subtitle">
+                    Comprehensive documentation of unauthorized constructions and building violations in the Mumbra region for urban planning, compliance monitoring, and civic awareness purposes.
+                </p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-number" data-target="247">0</div>
+                    <div class="stat-label">Documented Cases</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Documentation Progress</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="--target-width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card highlight">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-number" data-target="89">0</div>
+                    <div class="stat-label">Under Review</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Review Progress</span>
+                            <span>36%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="--target-width: 36%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-number" data-target="158">0</div>
+                    <div class="stat-label">Resolved Cases</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Resolution Rate</span>
+                            <span>64%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="--target-width: 64%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+    <main>
+            
+            <section id="illegal-report" class="section p-0">
+                <div class="container-fluid px-4 py-5">
+                    <div class="stats-header">
+                        <h2 class="stats-title">Report Illegal Building</h2>
+                        <p class="stats-subtitle">Upload a photo and provide details to flag an illegal construction. Your report will help maintain building safety standards in our community.</p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Upload Building Photo</h5>
+                                    <p class="text-muted mb-3">Add a clear image showing the structure in question.</p>
+                                    <div class="mb-3">
+                                        <label for="buildingImage" class="form-label">Image</label>
+                                        <input class="form-control" type="file" id="buildingImage" accept="image/*">
+                                    </div>
+                                    <div class="ratio ratio-16x9 border rounded d-flex align-items-center justify-content-center" style="background:#f8f9fa;">
+                                        <img id="preview" alt="Preview" style="object-fit:cover; width:100%; height:100%; display:none;" />
+                                        <div id="placeholder" class="text-secondary">No image selected</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Details</h5>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="isIllegal" checked>
+                                        <label class="form-check-label" for="isIllegal">This building is illegal</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Location</label>
+                                        <input type="text" id="location" class="form-control" placeholder="Address, coordinates, or landmark">
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <label for="severity" class="form-label">Severity</label>
+                                            <select id="severity" class="form-select">
+                                                <option value="low">Low</option>
+                                                <option value="medium" selected>Medium</option>
+                                                <option value="high">High</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label for="category" class="form-label">Category</label>
+                                            <select id="category" class="form-select">
+                                                <option selected>Unauthorized construction</option>
+                                                <option>Encroachment</option>
+                                                <option>Safety hazard</option>
+                                                <option>Environmental violation</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label for="notes" class="form-label">Notes</label>
+                                        <textarea id="notes" class="form-control" rows="4" placeholder="Add any extra information…"></textarea>
+                                    </div>
+                                    <div class="mt-3 d-flex gap-2">
+                                        <button id="submitReport" class="btn btn-primary">Submit Report</button>
+                                        <button id="resetForm" class="btn btn-outline-secondary">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+                        <div id="reportToast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="polite" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    Report submitted. Thank you for helping keep communities safe.
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inline Script for Form Submission -->
+                    <script>
+
+                        document.addEventListener('DOMContentLoaded', function() {
+                            console.log('Form script loaded');
+                            
+                            const submitBtn = document.getElementById('submitReport');
+                            const resetBtn = document.getElementById('resetForm');
+                            
+                            if (submitBtn) {
+                                console.log('Submit button found, adding event listener');
+                                
+                                submitBtn.addEventListener('click', async function(e) {
+                                    e.preventDefault();
+                                    console.log('Submit button clicked!');
+                                    
+                                    // Get form values
+                                    const location = document.getElementById('location').value;
+                                    const category = document.getElementById('category').value;
+                                    const severity = document.getElementById('severity').value;
+                                    const notes = document.getElementById('notes').value;
+                                    const imageInput = document.getElementById('buildingImage');
+                                    
+                                    console.log('Form values:', { location, category, severity, notes, hasImage: !!imageInput.files[0] });
+                                    
+                                    // Validate
+                                    if (!location.trim()) {
+                                        alert('Please provide a location for the building.');
+                                        return;
+                                    }
+                                    
+                                    // Handle image upload
+                                    let imageUrl = '/images/buildings/default-building.jpg';
+                                    if (imageInput.files && imageInput.files[0]) {
+                                        try {
+                                            // Convert image to base64
+                                            const file = imageInput.files[0];
+                                            console.log('Converting image to base64...');
+                                            
+                                            const base64 = await new Promise((resolve, reject) => {
+                                                const reader = new FileReader();
+                                                reader.onload = () => resolve(reader.result);
+                                                reader.onerror = reject;
+                                                reader.readAsDataURL(file);
+                                            });
+                                            
+                                            imageUrl = base64;
+                                            console.log('Image converted to base64, length:', base64.length);
+                                        } catch (error) {
+                                            console.error('Error processing image:', error);
+                                            alert('Error processing image. Report will be submitted with default image.');
+                                        }
+                                    }
+                                    
+                                    // Prepare data
+                                    const formData = {
+                                        name: location + ' Building',
+                                        address: location,
+                                        location: location,
+                                        wardNumber: '16',
+                                        floors: '0',
+                                        category: category,
+                                        violationType: 'unauthorized',
+                                        latitude: 19.1750,
+                                        longitude: 73.0100,
+                                        severity: severity.toUpperCase(),
+                                        status: 'PENDING',
+                                        description: notes || 'User reported building',
+                                        imageUrl: imageUrl
+                                    };
+                                    
+                                    console.log('Submitting data:', formData);
+                                    
+                                    try {
+                                        const response = await fetch('/api/buildings', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify(formData)
+                                        });
+                                        
+                                        console.log('Response status:', response.status);
+                                        
+                                        if (response.ok) {
+                                            const result = await response.json();
+                                            console.log('Success:', result);
+                                            
+                                            // Show toast
+                                            const toastEl = document.getElementById('reportToast');
+                                            if (toastEl && window.bootstrap) {
+                                                const toast = new bootstrap.Toast(toastEl);
+                                                toast.show();
+                                            } else {
+                                                alert('Report submitted successfully! It will be reviewed by administrators.');
+                                            }
+                                            
+                                            // Reset form
+                                            document.getElementById('location').value = '';
+                                            document.getElementById('severity').value = 'medium';
+                                            document.getElementById('category').selectedIndex = 0;
+                                            document.getElementById('notes').value = '';
+                                            
+                                            // Reset image
+                                            const imageInput = document.getElementById('buildingImage');
+                                            const preview = document.getElementById('preview');
+                                            const placeholder = document.getElementById('placeholder');
+                                            
+                                            if (imageInput) imageInput.value = '';
+                                            if (preview) {
+                                                preview.style.display = 'none';
+                                                preview.src = '';
+                                            }
+                                            if (placeholder) placeholder.style.display = 'flex';
+                                            
+                                        } else {
+                                            const errorText = await response.text();
+                                            console.error('Error response:', errorText);
+                                            alert('Error submitting report: ' + errorText);
+                                        }
+                                    } catch (error) {
+                                        console.error('Network error:', error);
+                                        alert('Network error. Please check your connection and try again.');
+                                    }
+                                });
+                            } else {
+                                console.error('Submit button not found!');
+                            }
+                            
+                            // Reset button handler
+                            if (resetBtn) {
+                                resetBtn.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    document.getElementById('location').value = '';
+                                    document.getElementById('severity').value = 'medium';
+                                    document.getElementById('category').selectedIndex = 0;
+                                    document.getElementById('notes').value = '';
+                                    
+                                    // Reset image
+                                    const imageInput = document.getElementById('buildingImage');
+                                    const preview = document.getElementById('preview');
+                                    const placeholder = document.getElementById('placeholder');
+                                    
+                                    if (imageInput) imageInput.value = '';
+                                    if (preview) {
+                                        preview.style.display = 'none';
+                                        preview.src = '';
+                                    }
+                                    if (placeholder) placeholder.style.display = 'flex';
+                                    
+                                    console.log('Form reset');
+                                });
+                            }
+                        });
+                    </script>
+                </div>
+            </section>
+
+    </main>
+
+    <!-- Contact Us Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="contact-header">
+                <h2 class="contact-title">Contact Us</h2>
+                <p class="contact-subtitle">Get in touch with us for any queries or support regarding illegal building documentation</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="contact-form-container">
+                        <form class="contact-form" id="contactForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="contactName" class="form-label">Full Name *</label>
+                                        <input type="text" id="contactName" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="contactEmail" class="form-label">Email Address *</label>
+                                        <input type="email" id="contactEmail" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="contactPhone" class="form-label">Phone Number</label>
+                                        <input type="tel" id="contactPhone" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="contactSubject" class="form-label">Subject *</label>
+                                        <select id="contactSubject" class="form-select" required>
+                                            <option value="">Select a subject</option>
+                                            <option value="report">Report Illegal Building</option>
+                                            <option value="query">General Query</option>
+                                            <option value="support">Technical Support</option>
+                                            <option value="feedback">Feedback</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="contactMessage" class="form-label">Message *</label>
+                                <textarea id="contactMessage" class="form-control" rows="5" placeholder="Please describe your query or concern..." required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm-6.524.378a.75.75 0 0 1 .124-1.33L7.733.112 8.086.28 2.112 10.448l-.001-.001Z"/>
+                                    </svg>
+                                    Send Message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Office Address</h4>
+                                <p>Mumbra Municipal Office<br>
+                                Thane District, Maharashtra<br>
+                                India - 400612</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M3 4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2.5a.5.5 0 0 1-.144.351L11 7.81V15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7.81l-.856-.96A.5.5 0 0 1 3 6.5V4z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Phone Numbers</h4>
+                                <p>+91 22 2541 2345<br>
+                                +91 22 2541 2346<br>
+                                Emergency: +91 98765 43210</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.105V5.383zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383v5.722z"/>
+                            </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Email Address</h4>
+                                <p>info@mumbracompliance.gov.in<br>
+                                support@mumbracompliance.gov.in<br>
+                                reports@mumbracompliance.gov.in</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Office Hours</h4>
+                                <p>Monday - Friday: 9:00 AM - 6:00 PM<br>
+                                Saturday: 9:00 AM - 1:00 PM<br>
+                                Sunday: Closed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Mumbra Urban Compliance Documentation Portal</p>
+            <p>For legitimate urban planning, compliance monitoring, and civic awareness purposes</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/js/mobile-menu.js"></script>
+    <script src="/js/risk-map.js"></script>
+    <script src="/js/stats.js"></script>
+    <!-- <script src="/js/script.js"></script> REMOVED - Using inline script instead -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        // Contact Form Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const formData = {
+                        name: document.getElementById('contactName').value,
+                        email: document.getElementById('contactEmail').value,
+                        phone: document.getElementById('contactPhone').value,
+                        subject: document.getElementById('contactSubject').value,
+                        message: document.getElementById('contactMessage').value
+                    };
+                    
+                    // Validate required fields
+                    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                        showContactMessage('Please fill in all required fields.', 'error');
+                        return;
+                    }
+                    
+                    // Validate email format
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(formData.email)) {
+                        showContactMessage('Please enter a valid email address.', 'error');
+                        return;
+                    }
+                    
+                    // Simulate form submission
+                    showContactMessage('Thank you for your message! We will get back to you soon.', 'success');
+                    
+                    // Reset form
+                    contactForm.reset();
+                });
+            }
+            
+            function showContactMessage(message, type) {
+                // Remove existing message if any
+                const existingMessage = document.querySelector('.contact-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                
+                // Create message element
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'contact-message';
+                messageDiv.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                        color: white;
+                        padding: 1rem 1.5rem;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        z-index: 9999;
+                        font-weight: 500;
+                        max-width: 400px;
+                        animation: slideIn 0.3s ease-out;
+                    ">
+                        ${message}
+                    </div>
+                `;
+                
+                // Add CSS animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                document.body.appendChild(messageDiv);
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.style.animation = 'slideIn 0.3s ease-out reverse';
+                        setTimeout(() => {
+                            if (messageDiv.parentNode) {
+                                messageDiv.parentNode.removeChild(messageDiv);
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('buildingSearch');
+            const searchButton = document.getElementById('searchButton');
+            const buildingCards = document.querySelectorAll('#illegal-cards .card');
+
+            // Function to filter buildings based on search input
+            function filterBuildings() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                
+                buildingCards.forEach(card => {
+                    const cardTitle = card.querySelector('.card-title');
+                    if (cardTitle) {
+                        const titleText = cardTitle.textContent.toLowerCase();
+                        const cardElement = card.closest('.col');
+                        
+                        if (titleText.includes(searchTerm) || searchTerm === '') {
+                            cardElement.style.display = 'block';
+                        } else {
+                            cardElement.style.display = 'none';
+                        }
+                    }
+                });
+            }
+
+            // Add event listeners
+            searchInput.addEventListener('input', filterBuildings);
+            searchButton.addEventListener('click', filterBuildings);
+
+            // Also trigger search when pressing Enter in the search input
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterBuildings();
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    
+    <script>
+        // Initialize dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.matches('.dropdown-toggle') && !event.target.closest('.dropdown-menu')) {
+                    var dropdowns = document.getElementsByClassName('dropdown-menu');
+                    for (var i = 0; i < dropdowns.length; i++) {
+                        var openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+            });
+
+            // Toggle dropdown on click for mobile
+            var dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            dropdownToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var menu = this.nextElementSibling;
+                    if (menu.classList.contains('show')) {
+                        menu.classList.remove('show');
+                    } else {
+                        // Close other open dropdowns
+                        var openMenus = document.querySelectorAll('.dropdown-menu.show');
+                        openMenus.forEach(function(openMenu) {
+                            if (openMenu !== menu) {
+                                openMenu.classList.remove('show');
+                            }
+                        });
+                        menu.classList.add('show');
+                    }
+                });
+            });
+        });
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const user = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(user)
+            });
+            
+            const result = await response.text();
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `
+                <div class="alert ${response.ok ? 'alert-success' : 'alert-danger'}">${result}</div>
+            `;
+            
+            // Redirect on successful login
+            if (response.ok) {
+                setTimeout(() => {
+                    window.location.href = '/illegal-buildings.html';
+                }, 1500);
+            }
+        } catch (error) {
+            document.getElementById('message').innerHTML = `
+                <div class="alert alert-danger">Error: ${error.message}</div>
+            `;
+        }
+    });
+    </script>
+
+    
+
+</body>
+</html>

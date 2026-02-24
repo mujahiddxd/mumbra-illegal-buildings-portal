@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Mumbra Documentation Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .admin-sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .admin-content {
+            padding: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .pending-card {
+            border-left: 4px solid #ffc107;
+        }
+
+        .verified-card {
+            border-left: 4px solid #28a745;
+        }
+
+        .rejected-card {
+            border-left: 4px solid #dc3545;
+        }
+
+        .building-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-buttons .btn {
+            margin-right: 0.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 admin-sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4><i class="bi bi-shield-check"></i> Admin Panel</h4>
+                    <small>Mumbra Documentation</small>
+                </div>
+
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#" onclick="showSection('dashboard', this)">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('pending', this)">
+                        <i class="bi bi-clock-history"></i> Pending Reports
+                        <span class="badge bg-warning ms-2" id="pendingCount">0</span>
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('verified', this)">
+                        <i class="bi bi-check-circle"></i> Verified Buildings
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('rejected', this)">
+                        <i class="bi bi-x-circle"></i> Rejected Reports
+                    </a>
+                    <hr class="my-3">
+                    <a class="nav-link" href="/illegal-buildings.html" target="_blank">
+                        <i class="bi bi-eye"></i> View Public Page
+                    </a>
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 admin-content">
+                <!-- Dashboard Section -->
+                <div id="dashboardSection">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-speedometer2"></i> Dashboard Overview</h2>
+                        <button class="btn btn-primary" onclick="refreshData()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-card pending-card">
+                                <h3 id="totalPending">0</h3>
+                                <p class="mb-0">Pending Reports</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card verified-card">
+                                <h3 id="totalVerified">0</h3>
+                                <p class="mb-0">Verified Buildings</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card rejected-card">
+                                <h3 id="totalRejected">0</h3>
+                                <p class="mb-0">Rejected Reports</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <h3 id="totalBuildings">0</h3>
+                                <p class="mb-0">Total Reports</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>Recent Activity</h4>
+                            <div id="recentActivity">
+                                <!-- Recent activity will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Reports Section -->
+                <div id="pendingSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-clock-history"></i> Pending Reports</h2>
+                        <div>
+                            <button class="btn btn-success" onclick="bulkApprove()">
+                                <i class="bi bi-check-all"></i> Bulk Approve
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshPending()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pendingBuildings">
+                        <!-- Pending buildings will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Verified Buildings Section -->
+                <div id="verifiedSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-check-circle"></i> Verified Buildings</h2>
+                        <button class="btn btn-primary" onclick="exportToCSV()">
+                            <i class="bi bi-download"></i> Export to CSV
+                        </button>
+                    </div>
+
+                    <div id="verifiedBuildings">
+                        <!-- Verified buildings will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Rejected Reports Section -->
+                <div id="rejectedSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-x-circle"></i> Rejected Reports</h2>
+                    </div>
+
+                    <div id="rejectedBuildings">
+                        <!-- Rejected buildings will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Building Details Modal -->
+    <div class="modal fade" id="buildingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Building Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Building details will be loaded here -->
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <!-- Action buttons will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let allBuildings = [];
+        let currentSection = 'dashboard';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if user is logged in
+            if (!localStorage.getItem('adminToken')) {
+                window.location.href = '/admin-login.html';
+                return;
+            }
+
+            // Verify authentication with server
+            checkAuthentication();
+        });
+        
+        // Check authentication with server
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/admin/check', {
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    // User is authenticated, load dashboard
+                    loadDashboardData();
+                } else {
+                    // Not authenticated, redirect to login
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin-login.html';
+                }
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                // On error, redirect to login
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        // Show different sections
+        function showSection(section, clickedElement = null) {
+            // Hide all sections
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('pendingSection').style.display = 'none';
+            document.getElementById('verifiedSection').style.display = 'none';
+            document.getElementById('rejectedSection').style.display = 'none';
+
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(section + 'Section').style.display = 'block';
+
+            // Add active class to clicked nav link
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            } else {
+                // Find the nav link for this section and make it active
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    if (link.onclick && link.onclick.toString().includes(`'${section}'`)) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            currentSection = section;
+
+            // Load section-specific data
+            switch (section) {
+                case 'pending':
+                    loadPendingBuildings();
+                    break;
+                case 'verified':
+                    loadVerifiedBuildings();
+                    break;
+                case 'rejected':
+                    loadRejectedBuildings();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/buildings/all', {
+                    credentials: 'same-origin'  // Include session cookies
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    // Not authenticated, redirect to login
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin-login.html';
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch buildings: ${response.status} ${response.statusText}`);
+                }
+
+                allBuildings = await response.json();
+
+                // Update statistics
+                const pending = allBuildings.filter(b => b.status === 'PENDING').length;
+                const verified = allBuildings.filter(b => b.status === 'VERIFIED').length;
+                const rejected = allBuildings.filter(b => b.status === 'REJECTED').length;
+
+                document.getElementById('totalPending').textContent = pending;
+                document.getElementById('totalVerified').textContent = verified;
+                document.getElementById('totalRejected').textContent = rejected;
+                document.getElementById('totalBuildings').textContent = allBuildings.length;
+                document.getElementById('pendingCount').textContent = pending;
+
+                // Load recent activity
+                loadRecentActivity();
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showAlert('Error loading dashboard data', 'danger');
+            }
+        }
+
+        // Load recent activity
+        function loadRecentActivity() {
+            const recentBuildings = allBuildings
+                .sort((a, b) => new Date(b.reportedDate) - new Date(a.reportedDate))
+                .slice(0, 5);
+
+            const activityHtml = recentBuildings.map(building => `
+                <div class="building-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${building.name}</h6>
+                            <small class="text-muted">${building.location}</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-${getStatusColor(building.status)}">${building.status}</span>
+                            <small class="text-muted ms-2">${formatDate(building.reportedDate)}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('recentActivity').innerHTML = activityHtml;
+        }
+
+        // Load pending buildings
+        function loadPendingBuildings() {
+            const pendingBuildings = allBuildings.filter(b => b.status === 'PENDING');
+
+            const html = pendingBuildings.map(building => createBuildingCard(building, true)).join('');
+            document.getElementById('pendingBuildings').innerHTML = html || '<p class="text-center text-muted">No pending reports</p>';
+        }
+
+        // Load verified buildings
+        function loadVerifiedBuildings() {
+            const verifiedBuildings = allBuildings.filter(b => b.status === 'VERIFIED');
+
+            const html = verifiedBuildings.map(building => createBuildingCard(building, false)).join('');
+            document.getElementById('verifiedBuildings').innerHTML = html || '<p class="text-center text-muted">No verified buildings</p>';
+        }
+
+        // Load rejected buildings
+        function loadRejectedBuildings() {
+            const rejectedBuildings = allBuildings.filter(b => b.status === 'REJECTED');
+
+            const html = rejectedBuildings.map(building => createBuildingCard(building, false)).join('');
+            document.getElementById('rejectedBuildings').innerHTML = html || '<p class="text-center text-muted">No rejected reports</p>';
+        }
+
+        // Create building card HTML
+        function createBuildingCard(building, showActions = false) {
+            const statusColor = getStatusColor(building.status);
+
+            return `
+                <div class="building-item">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <img src="${building.imageUrl || '/images/buildings/default-building.jpg'}" 
+                                 class="img-fluid rounded" alt="${building.name}" 
+                                 onerror="this.src='/images/buildings/default-building.jpg'">
+                        </div>
+                        <div class="col-md-6">
+                            <h5>${building.name}</h5>
+                            <p class="mb-1"><i class="bi bi-geo-alt"></i> ${building.location}</p>
+                            <p class="mb-1"><i class="bi bi-building"></i> ${building.floors} floors</p>
+                            <p class="mb-1"><i class="bi bi-exclamation-triangle"></i> ${building.severity} severity</p>
+                            <small class="text-muted">Reported: ${formatDate(building.reportedDate)}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge bg-${statusColor} mb-2">${building.status}</span>
+                            <br>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewBuildingDetails(${building.id})">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </div>
+                        ${showActions ? `
+                        <div class="col-md-2">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-success" onclick="approveBuilding(${building.id})">
+                                    <i class="bi bi-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectBuilding(${building.id})">
+                                    <i class="bi bi-x"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Approve building
+        async function approveBuilding(buildingId) {
+            if (!confirm('Are you sure you want to approve this building report?')) return;
+
+            try {
+                console.log('Approving building with ID:', buildingId);
+                const response = await fetch(`/api/buildings/${buildingId}/approve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'  // Include session cookies
+                });
+
+                console.log('Approve response status:', response.status);
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Building approved successfully:', result);
+                    showAlert('Building approved successfully and added to CSV', 'success');
+                    refreshData();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Approve failed:', errorText);
+                    throw new Error(`Failed to approve building: ${response.status} ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error approving building:', error);
+                showAlert('Error approving building: ' + error.message, 'danger');
+            }
+        }
+
+        // Reject building
+        async function rejectBuilding(buildingId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason) return;
+
+            try {
+                const response = await fetch(`/api/buildings/${buildingId}/reject`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',  // Include session cookies
+                    body: JSON.stringify({ reason })
+                });
+
+                if (response.ok) {
+                    showAlert('Building rejected successfully', 'success');
+                    refreshData();
+                } else {
+                    throw new Error('Failed to reject building');
+                }
+            } catch (error) {
+                console.error('Error rejecting building:', error);
+                showAlert('Error rejecting building', 'danger');
+            }
+        }
+
+        // View building details
+        function viewBuildingDetails(buildingId) {
+            const building = allBuildings.find(b => b.id === buildingId);
+            if (!building) return;
+
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <img src="${building.imageUrl || '/images/buildings/default-building.jpg'}" 
+                             class="img-fluid rounded" alt="${building.name}"
+                             onerror="this.src='/images/buildings/default-building.jpg'">
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <p><strong>Name:</strong> ${building.name}</p>
+                        <p><strong>Location:</strong> ${building.location}</p>
+                        <p><strong>Ward:</strong> ${building.wardNumber}</p>
+                        <p><strong>Floors:</strong> ${building.floors}</p>
+                        <p><strong>Category:</strong> ${building.category}</p>
+                        
+                        <h6 class="mt-3">Violation Details</h6>
+                        <p><strong>Type:</strong> ${building.violationType}</p>
+                        <p><strong>Severity:</strong> <span class="badge badge-${building.severity.toLowerCase()}">${building.severity}</span></p>
+                        <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(building.status)}">${building.status}</span></p>
+                        <p><strong>Reported:</strong> ${formatDate(building.reportedDate)}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Description</h6>
+                    <p>${building.description || 'No description available'}</p>
+                </div>
+            `;
+
+            // Show action buttons for pending buildings
+            if (building.status === 'PENDING') {
+                modalFooter.innerHTML = `
+                    <button type="button" class="btn btn-success" onclick="approveBuilding(${building.id}); bootstrap.Modal.getInstance(document.getElementById('buildingModal')).hide();">
+                        <i class="bi bi-check"></i> Approve
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="rejectBuilding(${building.id}); bootstrap.Modal.getInstance(document.getElementById('buildingModal')).hide();">
+                        <i class="bi bi-x"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                `;
+            } else {
+                modalFooter.innerHTML = `
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                `;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('buildingModal'));
+            modal.show();
+        }
+
+        // Export to CSV
+        async function exportToCSV() {
+            try {
+                const response = await fetch('/api/buildings/export/csv', {
+                    credentials: 'same-origin'  // Include session cookies
+                });
+                if (!response.ok) throw new Error('Failed to export CSV');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'verified_buildings.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showAlert('CSV exported successfully', 'success');
+            } catch (error) {
+                console.error('Error exporting CSV:', error);
+                showAlert('Error exporting CSV', 'danger');
+            }
+        }
+
+        // Utility functions
+        function getStatusColor(status) {
+            switch (status) {
+                case 'PENDING': return 'warning';
+                case 'VERIFIED': return 'success';
+                case 'REJECTED': return 'danger';
+                case 'UNDER_REVIEW': return 'info';
+                default: return 'secondary';
+            }
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function refreshData() {
+            loadDashboardData();
+            if (currentSection !== 'dashboard') {
+                showSection(currentSection);
+            }
+        }
+
+        function refreshPending() {
+            loadPendingBuildings();
+        }
+
+        function showAlert(message, type) {
+            // Create and show bootstrap alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/admin-login.html';
+        }
+    </script>
+</body>
+
+</html>
