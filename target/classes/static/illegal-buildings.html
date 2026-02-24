@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flagged Illegal Buildings - Mumbra Documentation Portal</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="logo-container">
+                <a href="index.html" aria-label="Home">
+                    <img src="/images/image.png" alt="Site logo" class="nav-logo" />
+                </a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-menu">
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#risk-map-section">Location Map</a></li>
+                    <li><a href="index.html#illegal-report">File Report</a></li>
+                    <li><a href="illegal-buildings.html">Reported Buildings</a></li>
+                    <li><a href="index.html#statistics">Statistics</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                    <li><a href="/admin-login.html" class="admin-link"><i class="bi bi-shield-lock"></i> Admin</a></li>
+                    <li class="nav-divider">|</li>
+                    <li class="nav-auth">
+                        <div class="dropdown">
+                            <button class="btn btn-login dropdown-toggle" type="button" id="authDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Account
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown">
+                                <li class="px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="user-avatar">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ms-3">
+                                            <div class="fw-medium">Access your dashboard</div>
+                                            <div class="text-muted small">Track your reports and status</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider my-2">
+                                </li>
+                                <li class="px-3 py-1">
+                                    <a href="/login.html" class="btn btn-primary btn-login w-100 mb-2">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                                    </a>
+                                </li>
+                                <li class="px-3 py-1">
+                                    <a href="/signup.html"
+                                        class="btn btn-outline-secondary btn-create-account w-100 mb-2">
+                                        <i class="bi bi-person-plus me-2"></i>Create Account
+                                    </a>
+                                </li>
+                                <li class="px-3 py-1">
+                                    <a href="/admin-login.html"
+                                        class="btn btn-warning w-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-shield-lock me-2"></i>
+                                        <span>Admin Login</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Add padding to account for fixed navbar -->
+
+    <!-- Page Header -->
+    <!-- <header class="page-header text-center">
+        <div class="container">
+            <h1 class="page-title">Reported Buildings</h1>
+        </div>
+    </header> -->
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Enhanced Filters Section -->
+        <div class="filters-enhanced">
+            <div class="filters-header">
+                <h3 class="filters-title">
+                    <i class="bi bi-funnel-fill"></i>
+                    Filter & Search
+                </h3>
+            </div>
+
+            <div class="filters-content">
+                <!-- Labels Row -->
+                <div class="row g-4 align-items-end mb-2">
+                    <div class="col-md-5">
+                        <label for="searchInput" class="filter-label">
+                            <i class="bi bi-search"></i>
+                            Search Buildings
+                        </label>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="severityFilter" class="filter-label">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            Severity
+                        </label>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="typeFilter" class="filter-label">
+                            <i class="bi bi-building"></i>
+                            Violation Type
+                        </label>
+                    </div>
+                    <div class="col-md-2">
+                        <!-- Empty column for alignment with Apply button -->
+                    </div>
+                </div>
+
+                <!-- Inputs Row -->
+                <div class="row g-4">
+                    <!-- Search Input -->
+                    <div class="col-md-5">
+                        <div class="input-with-icon">
+                            <input type="text" class="form-control filter-input" id="searchInput"
+                                placeholder="Enter building name or reference...">
+                            <i class="bi bi-search input-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Severity Filter -->
+                    <div class="col-md-2">
+                        <select class="form-select filter-select w-100" id="severityFilter">
+                            <option value="">All Severity</option>
+                            <option value="high">🔴 High Risk</option>
+                            <option value="medium">🟡 Medium Risk</option>
+                            <option value="low">🟢 Low Risk</option>
+                        </select>
+                    </div>
+
+                    <!-- Violation Type Filter -->
+                    <div class="col-md-3">
+                        <select class="form-select filter-select w-100" id="typeFilter">
+                            <option value="">All Types</option>
+                            <option value="unauthorized">🚫 Unauthorized</option>
+                            <option value="encroachment">🏠 Encroachment</option>
+                            <option value="modification">🔨 Modification</option>
+                        </select>
+                    </div>
+
+                    <!-- Apply Button -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-apply-filters w-100" id="applyFilters">
+                            <i class="bi bi-funnel-fill"></i>
+                            Apply
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Debug Section (remove in production) -->
+                <div class="row mt-3">
+                    <div class="col-12 d-flex align-items-center flex-wrap">
+                        <button class="btn btn-info btn-sm me-2 mb-1" onclick="testAPI()">Test API Connection</button>
+                        <button class="btn btn-success btn-sm me-2 mb-1" id="refreshBtn" onclick="refreshBuildings()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <button class="btn btn-warning btn-sm me-2 mb-1" onclick="testSSE()">Test Live Updates</button>
+                        <button class="btn btn-secondary btn-sm me-2 mb-1" onclick="testSSEEndpoint()">Test SSE Endpoint</button>
+                        <button class="btn btn-outline-info btn-sm me-2 mb-1" onclick="checkSSEHealth()">Check SSE Health</button>
+                        <span id="debugInfo" class="text-muted"></span>
+                    </div>
+                </div>
+
+                <!-- Quick Filter Chips -->
+                <div class="quick-filters mt-4">
+                    <span class="quick-filter-label">Quick Filters:</span>
+                    <button class="quick-filter-chip active" data-filter="all">All</button>
+                    <button class="quick-filter-chip" data-filter="high">High Risk</button>
+                    <button class="quick-filter-chip" data-filter="medium">Medium Risk</button>
+                    <button class="quick-filter-chip" data-filter="low">Low Risk</button>
+                    <button class="quick-filter-chip" data-filter="unauthorized">Unauthorized</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Building Cards -->
+        <div class="row" id="buildingsContainer">
+            <!-- Building cards will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Mumbra Urban Compliance Documentation Portal</p>
+            <p>For legitimate urban planning, compliance monitoring, and civic awareness purposes</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let allBuildings = [];
+        let filteredBuildings = [];
+
+        // Function to create building card HTML
+        function createBuildingCard(building) {
+            const severityClass = `badge-${building.severity.toLowerCase()}`;
+            const severityText = building.severity.charAt(0).toUpperCase() + building.severity.slice(1);
+            const violationTypeText = building.violationType ? building.violationType.charAt(0).toUpperCase() + building.violationType.slice(1) : 'Unknown';
+
+            // Format reported date
+            const reportedDate = building.reportedDate ? new Date(building.reportedDate).toLocaleDateString() : 'Unknown';
+
+            return `
+                <div class="col-md-6 col-lg-4 mb-4" data-type="${building.violationType || 'unknown'}" data-severity="${building.severity.toLowerCase()}">
+                    <div class="building-card card h-100">
+                        <img src="${building.imageUrl || '/images/buildings/default-building.jpg'}" class="building-img" alt="${building.name}" onerror="this.src='/images/buildings/default-building.jpg'">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">${building.name}</h5>
+                                <span class="badge ${severityClass}">${severityText}</span>
+                            </div>
+                            <p class="card-subtitle"><i class="bi bi-geo-alt-fill text-primary"></i> ${building.location || building.address || 'Location not specified'}</p>
+                            <p class="card-text">${building.description || 'No description available'}</p>
+                            <div class="card-details mb-2">
+                                <small class="text-muted d-block"><i class="bi bi-building"></i> Floors: ${building.floors || 'Unknown'}</small>
+                                <small class="text-muted d-block"><i class="bi bi-tag"></i> Type: ${violationTypeText}</small>
+                                <small class="text-muted d-block"><i class="bi bi-geo"></i> Ward: ${building.wardNumber || 'Unknown'}</small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Reported: ${reportedDate}</small>
+                                <button class="btn btn-view" onclick="viewBuildingDetails(${building.id})">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to render buildings
+        function renderBuildings(buildingsToRender) {
+            const container = document.getElementById('buildingsContainer');
+            if (buildingsToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No buildings found matching your criteria. Try adjusting your filters.
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = buildingsToRender.map(createBuildingCard).join('');
+            }
+        }
+
+        // Function to fetch buildings from API and CSV
+        async function fetchBuildings() {
+            try {
+                console.log('Fetching buildings from API and CSV...');
+
+                // First, try to fetch from API (verified buildings from database)
+                let apiBuildings = [];
+                try {
+                    const apiResponse = await fetch('/api/buildings');
+                    if (apiResponse.ok) {
+                        apiBuildings = await apiResponse.json();
+                        console.log('Fetched from API:', apiBuildings.length, 'buildings');
+                    }
+                } catch (error) {
+                    console.log('API fetch failed, will use CSV only:', error.message);
+                }
+
+                // Then fetch from CSV as backup/additional data
+                let csvBuildings = [];
+                try {
+                    const csvResponse = await fetch('/buildings.csv');
+                    if (csvResponse.ok) {
+                        const csvText = await csvResponse.text();
+                        console.log('CSV text length:', csvText.length);
+
+                        // Use PapaParse for better CSV parsing
+                        if (typeof Papa !== 'undefined') {
+                            console.log('Using PapaParse for CSV parsing');
+                            const parsed = Papa.parse(csvText, {
+                                header: true,
+                                skipEmptyLines: true
+                            });
+
+                            csvBuildings = parsed.data.map((row, index) => ({
+                                id: `csv_${index + 1}`,
+                                wardNumber: row['Ward No.'] || row['Ward Number'] || '16',
+                                name: row['Building Name'] || row['Name'] || 'Unknown Building',
+                                location: row['Location'] || 'Unknown Location',
+                                address: row['Location'] || 'Unknown Address',
+                                floors: row['Floors'] || '0',
+                                category: row['Category'] || 'Unauthorized construction',
+                                imageUrl: row['Image URL'] || '/images/buildings/default-building.jpg',
+                                area: row['Area'] || '1000',
+                                latitude: parseFloat(row['Latitude']) || 19.1750,
+                                longitude: parseFloat(row['Longitude']) || 73.0100,
+                                severity: parseInt(row['Floors']) >= 7 ? 'HIGH' : parseInt(row['Floors']) >= 5 ? 'MEDIUM' : 'LOW',
+                                violationType: 'unauthorized',
+                                status: 'VERIFIED',
+                                description: row['Description'] || 'Building from CSV data',
+                                reportedDate: new Date().toISOString()
+                            }));
+                        } else {
+                            console.log('Using custom CSV parsing');
+                            csvBuildings = parseCSV(csvText);
+                        }
+                        console.log('Parsed from CSV:', csvBuildings.length, 'buildings');
+                    }
+                } catch (error) {
+                    console.log('CSV fetch failed:', error.message);
+                }
+
+                // Combine API and CSV buildings, removing duplicates by name
+                const buildingMap = new Map();
+
+                // Add API buildings first (they take priority)
+                apiBuildings.forEach(building => {
+                    if (building.status === 'VERIFIED') {
+                        buildingMap.set(building.name.toLowerCase(), building);
+                    }
+                });
+
+                // Add CSV buildings if not already present
+                csvBuildings.forEach(building => {
+                    const key = building.name.toLowerCase();
+                    if (!buildingMap.has(key)) {
+                        buildingMap.set(key, building);
+                    }
+                });
+
+                allBuildings = Array.from(buildingMap.values());
+                console.log('Total unique buildings:', allBuildings.length);
+                console.log('First building:', allBuildings[0]);
+
+                if (allBuildings.length === 0) {
+                    throw new Error('No buildings found in API or CSV');
+                }
+
+                filteredBuildings = [...allBuildings];
+                renderBuildings(filteredBuildings);
+                updateFilterCounts();
+
+                // Update debug info with timestamp
+                const now = new Date().toLocaleTimeString();
+                document.getElementById('debugInfo').textContent =
+                    `Loaded ${allBuildings.length} buildings (API: ${apiBuildings.length}, CSV: ${csvBuildings.length}) - Last updated: ${now}`;
+
+                // Set initial count for auto-refresh
+                lastBuildingCount = apiBuildings.length;
+
+            } catch (error) {
+                console.error('Error fetching buildings:', error);
+                document.getElementById('buildingsContainer').innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Failed to load buildings data: ${error.message}<br>
+                            <small>Check browser console for details.</small>
+                        </div>
+                    </div>
+                `;
+
+                // Update debug info with error
+                document.getElementById('debugInfo').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Function to parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
+            const buildings = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+
+                const values = parseCSVLine(lines[i]);
+                if (values.length < headers.length) continue;
+
+                const building = {
+                    id: `csv_${values[0]}`,
+                    wardNumber: values[1],
+                    name: values[2],
+                    location: values[3],
+                    address: values[3],
+                    floors: values[4],
+                    category: values[5],
+                    imageUrl: values[6] || '/images/buildings/default-building.jpg',
+                    area: values[7],
+                    latitude: parseFloat(values[8]) || 19.1750,
+                    longitude: parseFloat(values[9]) || 73.0100,
+                    severity: parseInt(values[4]) >= 7 ? 'HIGH' : parseInt(values[4]) >= 5 ? 'MEDIUM' : 'LOW',
+                    violationType: 'unauthorized',
+                    status: 'VERIFIED',
+                    description: 'Building from CSV data',
+                    reportedDate: new Date().toISOString()
+                };
+
+                buildings.push(building);
+            }
+
+            return buildings;
+        }
+
+        // Function to parse CSV line handling quoted values
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        // Function to update filter counts
+        function updateFilterCounts() {
+            const highCount = allBuildings.filter(b => b.severity === 'HIGH').length;
+            const mediumCount = allBuildings.filter(b => b.severity === 'MEDIUM').length;
+            const lowCount = allBuildings.filter(b => b.severity === 'LOW').length;
+
+            document.getElementById('highCount').textContent = highCount;
+            document.getElementById('mediumCount').textContent = mediumCount;
+            document.getElementById('lowCount').textContent = lowCount;
+        }
+
+        // Function to view building details
+        function viewBuildingDetails(buildingId) {
+            const building = allBuildings.find(b => b.id == buildingId);
+            if (building) {
+                // Create modal for building details
+                const modalHtml = `
+                    <div class="modal fade" id="buildingModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">${building.name}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <img src="${building.imageUrl || '/images/buildings/default-building.jpg'}" class="img-fluid rounded" alt="${building.name}" onerror="this.src='/images/buildings/default-building.jpg'">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Location Details</h6>
+                                            <p><i class="bi bi-geo-alt"></i> ${building.location || building.address || 'Not specified'}</p>
+                                            <p><i class="bi bi-building"></i> Floors: ${building.floors || 'Unknown'}</p>
+                                            <p><i class="bi bi-geo"></i> Ward: ${building.wardNumber || 'Unknown'}</p>
+                                            <p><i class="bi bi-tag"></i> Category: ${building.category || 'Unknown'}</p>
+                                            
+                                            <h6 class="mt-3">Violation Details</h6>
+                                            <p><i class="bi bi-exclamation-triangle"></i> Type: ${building.violationType || 'Unknown'}</p>
+                                            <p><i class="bi bi-flag"></i> Severity: <span class="badge badge-${building.severity.toLowerCase()}">${building.severity}</span></p>
+                                            <p><i class="bi bi-clock"></i> Status: ${building.status || 'Unknown'}</p>
+                                            <p><i class="bi bi-calendar"></i> Reported: ${building.reportedDate ? new Date(building.reportedDate).toLocaleDateString() : 'Unknown'}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <h6>Description</h6>
+                                        <p>${building.description || 'No description available'}</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Remove existing modal if any
+                const existingModal = document.getElementById('buildingModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+
+                // Add modal to body
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('buildingModal'));
+                modal.show();
+            }
+        }
+
+        // Apply filters function
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const severityFilter = document.getElementById('severityFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            filteredBuildings = allBuildings.filter(building => {
+                const matchesSearch = !searchTerm ||
+                    building.name.toLowerCase().includes(searchTerm) ||
+                    (building.location && building.location.toLowerCase().includes(searchTerm)) ||
+                    (building.address && building.address.toLowerCase().includes(searchTerm)) ||
+                    (building.description && building.description.toLowerCase().includes(searchTerm));
+
+                const matchesSeverity = !severityFilter || building.severity.toLowerCase() === severityFilter;
+                const matchesType = !typeFilter || (building.violationType && building.violationType.toLowerCase() === typeFilter);
+
+                return matchesSearch && matchesSeverity && matchesType;
+            });
+
+            renderBuildings(filteredBuildings);
+        }
+
+        // Quick filter function
+        function applyQuickFilter(filterType) {
+            if (filterType === 'all') {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('severityFilter').value = '';
+                document.getElementById('typeFilter').value = '';
+                filteredBuildings = [...allBuildings];
+                renderBuildings(filteredBuildings);
+            } else if (filterType === 'high' || filterType === 'medium' || filterType === 'low') {
+                document.getElementById('severityFilter').value = filterType;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('typeFilter').value = '';
+                applyFilters();
+            } else if (filterType === 'unauthorized') {
+                document.getElementById('typeFilter').value = 'unauthorized';
+                document.getElementById('searchInput').value = '';
+                document.getElementById('severityFilter').value = '';
+                applyFilters();
+            }
+        }
+
+        // Test API function
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/buildings/test');
+                const result = await response.text();
+                document.getElementById('debugInfo').textContent = result;
+                console.log('API Test Result:', result);
+            } catch (error) {
+                document.getElementById('debugInfo').textContent = 'API Test Failed: ' + error.message;
+                console.error('API Test Error:', error);
+            }
+        }
+
+        // Auto-refresh functionality
+        let lastBuildingCount = 0;
+        let refreshInterval;
+
+        async function checkForUpdates() {
+            try {
+                const response = await fetch('/api/buildings');
+                if (response.ok) {
+                    const buildings = await response.json();
+                    const currentCount = buildings.length;
+
+                    // Check if there are new buildings or if existing buildings have been updated
+                    if (currentCount !== lastBuildingCount && lastBuildingCount > 0) {
+                        console.log(`Building count changed from ${lastBuildingCount} to ${currentCount}, refreshing data...`);
+                        await fetchBuildings();
+                        showUpdateNotification(`${currentCount > lastBuildingCount ? 'New' : 'Updated'} buildings detected!`);
+                    } else if (currentCount > 0) {
+                        // Check if any building data has changed (more sophisticated check)
+                        const currentBuildingIds = buildings.map(b => b.id).sort().join(',');
+                        const existingBuildingIds = allBuildings.map(b => b.id).sort().join(',');
+
+                        if (currentBuildingIds !== existingBuildingIds) {
+                            console.log('Building data changed, refreshing...');
+                            await fetchBuildings();
+                            showUpdateNotification('Building information updated!');
+                        }
+                    }
+                    lastBuildingCount = currentCount;
+                }
+            } catch (error) {
+                console.log('Auto-refresh check failed:', error.message);
+            }
+        }
+
+        function showUpdateNotification(message = 'New buildings have been added! The list has been updated.') {
+            // Remove any existing notifications
+            const existingNotifications = document.querySelectorAll('.update-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            // Create a notification element
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success position-fixed update-notification';
+            notification.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close ms-2" onclick="this.parentElement.remove()"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Real-time updates using Server-Sent Events
+        let eventSource;
+
+        function connectToUpdates() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            console.log('Attempting to connect to SSE endpoint: /api/sse/building-updates');
+            eventSource = new EventSource('/api/sse/building-updates');
+            
+            eventSource.onopen = function(event) {
+                console.log('SSE connection opened successfully', event);
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo) {
+                    debugInfo.innerHTML = debugInfo.innerHTML.replace('🔴 Connection lost, retrying...', '') + ' <span class="text-success">🟢 Live updates connected</span>';
+                }
+            };
+
+            eventSource.addEventListener('connected', function(event) {
+                console.log('SSE connection confirmed:', event.data);
+            });
+
+            eventSource.addEventListener('building-approved', function(event) {
+                console.log('Building approved event received:', event.data);
+                const data = JSON.parse(event.data);
+                handleBuildingUpdate(data, 'approved');
+            });
+
+            eventSource.addEventListener('building-rejected', function(event) {
+                console.log('Building rejected event received:', event.data);
+                const data = JSON.parse(event.data);
+                handleBuildingUpdate(data, 'rejected');
+            });
+
+            eventSource.onerror = function(event) {
+                console.error('SSE connection error:', event);
+                console.log('EventSource readyState:', eventSource.readyState);
+                console.log('EventSource url:', eventSource.url);
+                
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo) {
+                    debugInfo.innerHTML = debugInfo.innerHTML.replace('🟢 Live updates connected', '🔴 Connection lost, retrying...');
+                }
+                
+                // Only retry if the connection is actually closed
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    console.log('Connection closed, retrying in 5 seconds...');
+                    setTimeout(() => {
+                        connectToUpdates();
+                    }, 5000);
+                }
+            };
+        }
+
+        async function handleBuildingUpdate(data, action) {
+            if (action === 'approved') {
+                console.log(`Building "${data.buildingName}" was approved, refreshing data...`);
+                await fetchBuildings();
+                showUpdateNotification(`"${data.buildingName}" has been approved and added to the list!`);
+            } else if (action === 'rejected') {
+                console.log(`Building "${data.buildingName}" was rejected`);
+                // For rejected buildings, we might want to refresh to remove them from pending lists
+                // But since this is the public page showing only verified buildings, we don't need to do anything
+                console.log('Building rejected, no action needed on public page');
+            }
+        }
+
+        function disconnectFromUpdates() {
+            if (eventSource) {
+                eventSource.close();
+                console.log('Disconnected from building updates stream');
+            }
+        }
+
+        // Test API function
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/buildings/test');
+                const result = await response.text();
+                document.getElementById('debugInfo').textContent = result;
+                console.log('API Test Result:', result);
+            } catch (error) {
+                document.getElementById('debugInfo').textContent = 'API Test Failed: ' + error.message;
+                console.error('API Test Error:', error);
+            }
+        }
+
+        // Test SSE connection
+        function testSSE() {
+            if (eventSource && eventSource.readyState === EventSource.OPEN) {
+                showUpdateNotification('SSE connection is active and working!');
+                document.getElementById('debugInfo').textContent += ' | SSE Status: Connected ✅';
+            } else if (eventSource && eventSource.readyState === EventSource.CONNECTING) {
+                document.getElementById('debugInfo').textContent += ' | SSE Status: Connecting... ⏳';
+            } else {
+                document.getElementById('debugInfo').textContent += ' | SSE Status: Disconnected ❌';
+                // Try to reconnect
+                connectToUpdates();
+            }
+        }
+
+        // Test SSE endpoint directly
+        async function testSSEEndpoint() {
+            try {
+                const response = await fetch('/api/sse/test-notification');
+                const result = await response.text();
+                console.log('SSE endpoint test result:', result);
+                showUpdateNotification('SSE test triggered: ' + result);
+            } catch (error) {
+                console.error('SSE endpoint test failed:', error);
+                showUpdateNotification('SSE endpoint test failed: ' + error.message);
+            }
+        }
+
+        // Check SSE health
+        async function checkSSEHealth() {
+            try {
+                const response = await fetch('/api/sse/health');
+                const result = await response.text();
+                console.log('SSE health check result:', result);
+                document.getElementById('debugInfo').textContent += ' | ' + result;
+            } catch (error) {
+                console.error('SSE health check failed:', error);
+                document.getElementById('debugInfo').textContent += ' | SSE Health: Error - ' + error.message;
+            }
+        }
+
+        // Manual refresh function
+        async function refreshBuildings() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Refreshing...';
+            }
+
+            try {
+                await fetchBuildings();
+                if (refreshBtn) {
+                    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
+                }
+            } catch (error) {
+                console.error('Manual refresh failed:', error);
+            } finally {
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                }
+            }
+        }
+
+        // Initial render and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch buildings from API
+            fetchBuildings().then(() => {
+                // Connect to real-time updates after initial load
+                connectToUpdates();
+            });
+
+            // Filter functionality
+            document.getElementById('applyFilters').addEventListener('click', applyFilters);
+
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+            // Make filters work with Enter key
+            document.getElementById('severityFilter').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applyFilters();
+            });
+
+            document.getElementById('typeFilter').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applyFilters();
+            });
+
+            // Quick filter chips functionality
+            const quickFilterChips = document.querySelectorAll('.quick-filter-chip');
+            quickFilterChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    // Remove active class from all chips
+                    quickFilterChips.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked chip
+                    chip.classList.add('active');
+
+                    // Apply the filter
+                    const filterType = chip.getAttribute('data-filter');
+                    applyQuickFilter(filterType);
+                });
+            });
+
+            // Handle page visibility changes for SSE connection
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    disconnectFromUpdates();
+                    console.log('Page hidden, disconnecting from updates');
+                } else {
+                    connectToUpdates();
+                    console.log('Page visible, reconnecting to updates');
+                }
+            });
+
+            // Disconnect from updates when page is about to unload
+            window.addEventListener('beforeunload', () => {
+                disconnectFromUpdates();
+            });
+        });
+    </script>
+
+    <!-- Mobile Menu Script -->
+    <script src="mobile-menu.js"></script>
+    <script>
+        // Initialize mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const mainNav = document.querySelector('.main-nav');
+            const body = document.body;
+            const navLinks = document.querySelectorAll('.nav-menu a, .dropdown-menu a');
+
+            // Toggle mobile menu
+            function toggleMenu() {
+                menuToggle.classList.toggle('active');
+                mainNav.classList.toggle('active');
+                body.classList.toggle('menu-open');
+
+                // Update aria-expanded attribute
+                const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+                menuToggle.setAttribute('aria-expanded', !isExpanded);
+            }
+
+            // Close menu when clicking outside
+            function closeMenuOnClickOutside(event) {
+                if (!mainNav.contains(event.target) && !menuToggle.contains(event.target)) {
+                    if (mainNav.classList.contains('active')) {
+                        toggleMenu();
+                    }
+                }
+            }
+
+            // Close menu when clicking on a link
+            function closeMenuOnLinkClick() {
+                if (window.innerWidth <= 992) {
+                    toggleMenu();
+                }
+            }
+
+            // Event listeners
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    toggleMenu();
+                });
+            }
+
+            // Close menu when clicking outside
+            document.addEventListener('click', closeMenuOnClickOutside);
+
+            // Close menu when clicking on a navigation link
+            navLinks.forEach(link => {
+                link.addEventListener('click', closeMenuOnLinkClick);
+            });
+        });
+    </script>
+</body>
+
+</html>

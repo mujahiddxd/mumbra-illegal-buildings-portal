@@ -1,0 +1,120 @@
+<!-- admin-login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Mumbra Documentation Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .form-signin {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="login-container bg-white">
+            <div class="text-center mb-4">
+                <h2>Admin Login</h2>
+                <p class="text-muted">Enter your credentials to access the dashboard</p>
+                <div class="alert alert-info">
+                    <small><strong>Default Credentials:</strong><br>
+                    Username: <code>admin</code><br>
+                    Password: <code>admin123</code></small>
+                </div>
+            </div>
+            
+            <form class="form-signin" id="loginForm">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="username" placeholder="Username" required>
+                    <label for="username">Username</label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <label for="password">Password</label>
+                </div>
+                
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+                
+                <div id="errorMessage" class="alert alert-danger mt-3 d-none" role="alert"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            
+            // Hide any previous error
+            errorDiv.classList.add('d-none');
+            
+            // Show loading state
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Signing in...';
+            submitBtn.disabled = true;
+            
+            try {
+                console.log('Attempting login for user:', username);
+                
+                const response = await fetch('/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',  // Include session cookies
+                    body: JSON.stringify({ username, password })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.text();
+                    console.log('Login successful:', data);
+                    // Store a simple token (just for session tracking)
+                    localStorage.setItem('adminToken', 'authenticated');
+                    // Redirect to admin dashboard
+                    window.location.href = '/admin-dashboard.html';
+                } else {
+                    const error = await response.text();
+                    console.log('Login failed:', error);
+                    showError(error);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('d-none');
+        }
+        
+        // Check if already logged in
+        if (localStorage.getItem('adminToken')) {
+            // Verify token and redirect if valid
+            // You might want to add token verification here
+            window.location.href = '/admin-dashboard.html';
+        }
+    </script>
+</body>
+</html>
